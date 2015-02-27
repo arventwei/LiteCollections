@@ -36,7 +36,7 @@ namespace System.Collections.LiteCollections
 
 		public int Count { get { return _raw.Count; } }
 
-		public T this [int index]
+		public T this[int index]
 		{
 			get { return (T)_raw[index]; }
 			set { _raw[index] = value; }
@@ -206,17 +206,12 @@ namespace System.Collections.LiteCollections
 		{
 			c._raw.Sort(comparer);
 		}
-		
+
 		public static void Sort<T>(this LiteList<T> c, int index, int count, IComparer comparer)
 		{
 			c._raw.Sort(index, count, comparer);
 		}
-		
-		public static void Sort<T>(this LiteList<T> c, IComparer comparer)
-		{
-			c._raw.Sort(comparer);
-		}
-		
+
 		public static void Sort<T>(this LiteList<T> c)
 		{
 			c._raw.Sort();
