@@ -1,4 +1,4 @@
-﻿/*
+/*
 ** This source file is the implementation of LiteCollections
 **
 ** For the latest info, see https://github.com/paladin-t/LiteCollections
@@ -79,6 +79,33 @@ namespace System.Collections.LiteCollections
 			_raw = new Hashtable(capicity);
 		}
 	}
+
+    public class LiteSortedMap<TKey, TValue>
+    {
+        public SortedList _raw = null;
+
+        public int Count { get { return _raw.Count; } }
+
+        public ICollection Keys { get { return _raw.Keys; } }
+
+        public ICollection Values { get { return _raw.Values; } }
+
+        public TValue this[TKey key]
+        {
+            get { return (TValue)_raw[key]; }
+            set { _raw[key] = value; }
+        }
+
+        public LiteSortedMap()
+        {
+            _raw = new SortedList();
+        }
+
+        public LiteSortedMap(int capicity)
+        {
+            _raw = new SortedList(capicity);
+        }
+    }
 
 	public static class Extentions
 	{
@@ -202,16 +229,29 @@ namespace System.Collections.LiteCollections
 			c._raw.RemoveRange(index, count);
 		}
 
+        public static void Shuffle<T>(this LiteList<T> c)
+        {
+            Random rnd = new Random(Guid.NewGuid().GetHashCode());
+            for (int k = 0; k < c.Count; k++)
+            {
+                int i = rnd.Next(0, c.Count - 1);
+                int j = rnd.Next(0, c.Count - 1);
+                T t = c[i];
+                c[i] = c[j];
+                c[j] = t;
+            }
+        }
+
 		public static void Sort<T>(this LiteList<T> c, IComparer comparer)
 		{
 			c._raw.Sort(comparer);
 		}
-
+		
 		public static void Sort<T>(this LiteList<T> c, int index, int count, IComparer comparer)
 		{
 			c._raw.Sort(index, count, comparer);
 		}
-
+		
 		public static void Sort<T>(this LiteList<T> c)
 		{
 			c._raw.Sort();
@@ -260,8 +300,8 @@ namespace System.Collections.LiteCollections
 			
 			return true;
 		}
-		
-		public static bool TryGetValue<TKey, TValue>(this LiteMap<TKey, TValue> c, TKey key, out TValue value)
+
+        public static bool TryGetValue<TKey, TValue>(this LiteMap<TKey, TValue> c, TKey key, out TValue value)
 		{
 			value = default(TValue);
 			
@@ -272,5 +312,52 @@ namespace System.Collections.LiteCollections
 			
 			return true;
 		}
+
+        public static void Add<TKey, TValue>(this LiteSortedMap<TKey, TValue> c, TKey key, TValue value)
+        {
+            c._raw.Add(key, value);
+        }
+
+        public static void Clear<TKey, TValue>(this LiteSortedMap<TKey, TValue> c)
+        {
+            c._raw.Clear();
+        }
+
+        public static bool ContainsKey<TKey, TValue>(this LiteSortedMap<TKey, TValue> c, TKey key)
+        {
+            return c._raw.ContainsKey(key);
+        }
+
+        public static bool ContainsValue<TKey, TValue>(this LiteSortedMap<TKey, TValue> c, TValue value)
+        {
+            return c._raw.ContainsValue(value);
+        }
+
+        public static IDictionaryEnumerator GetEnumerator<TKey, TValue>(this LiteSortedMap<TKey, TValue> c)
+        {
+            return c._raw.GetEnumerator();
+        }
+
+        public static bool Remove<TKey, TValue>(this LiteSortedMap<TKey, TValue> c, TKey key)
+        {
+            if (!c._raw.ContainsKey(key))
+                return false;
+
+            c._raw.Remove(key);
+
+            return true;
+        }
+
+        public static bool TryGetValue<TKey, TValue>(this LiteSortedMap<TKey, TValue> c, TKey key, out TValue value)
+        {
+            value = default(TValue);
+
+            if (!c.ContainsKey(key))
+                return false;
+
+            value = (TValue)c._raw[key];
+
+            return true;
+        }
 	}
 }
