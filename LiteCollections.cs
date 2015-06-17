@@ -119,6 +119,12 @@ namespace System.Collections.LiteCollections
             c._raw.AddRange(collection);
         }
 
+        public static void AddRange<T>(this LiteList<T> c, LiteList<T> collection)
+        {
+            for (int i = 0; i < collection.Count; i++)
+                c._raw.Add(collection._raw[i]);
+        }
+
         public static ReadOnlyCollection<T> AsReadOnly<T>(this LiteList<T> c)
         {
             return new ReadOnlyCollection<T>(c.ToArray());
@@ -162,6 +168,12 @@ namespace System.Collections.LiteCollections
         public static void CopyTo<T>(this LiteList<T> c, T[] array)
         {
             c._raw.CopyTo(array);
+        }
+
+        public static void Foreach<T>(this LiteList<T> c, Action<int, T> action)
+        {
+            for (int i = 0; i < c.Count; i++)
+                action(i, c[i]);
         }
 
         public static IEnumerator GetEnumerator<T>(this LiteList<T> c)
@@ -224,22 +236,42 @@ namespace System.Collections.LiteCollections
             c._raw.RemoveAt(index);
         }
 
+        public static void RemoveIf<T>(this LiteList<T> c, Func<T, bool> condition)
+        {
+            LiteList<int> tobeRemoved = null;
+            for (int i = c.Count - 1; i >= 0; i--)
+            {
+                T item = c[i];
+                if (condition(item))
+                {
+                    if (tobeRemoved == null)
+                        tobeRemoved = new LiteList<int>();
+                    tobeRemoved.Add(i);
+                }
+            }
+            if (tobeRemoved != null)
+            {
+                for (int i = 0; i < tobeRemoved.Count; i++)
+                    c.RemoveAt(tobeRemoved[i]);
+            }
+        }
+
         public static void RemoveRange<T>(this LiteList<T> c, int index, int count)
         {
             c._raw.RemoveRange(index, count);
         }
 
-        public static void Shuffle<T>(this LiteList<T> c)
+        public static LiteList<T> Shuffle<T>(this LiteList<T> c)
         {
-            Random rnd = new Random(Guid.NewGuid().GetHashCode());
-            for (int k = 0; k < c.Count; k++)
+            LiteList<T> l = new LiteList<T>();
+            while (c.Count != 0)
             {
-                int i = rnd.Next(0, c.Count - 1);
-                int j = rnd.Next(0, c.Count - 1);
-                T t = c[i];
-                c[i] = c[j];
-                c[j] = t;
+                int i = UnityEngine.Random.Range(0, c.Count - 1);
+                l._raw.Add(c[i]);
+                c._raw.RemoveAt(i);
             }
+
+            return l;
         }
 
         public static void Sort<T>(this LiteList<T> c, IComparer comparer)
@@ -286,6 +318,17 @@ namespace System.Collections.LiteCollections
             return c._raw.ContainsValue(value);
         }
 
+        public static void Foreach<TKey, TValue>(this LiteMap<TKey, TValue> c, Action<TKey, TValue> action)
+        {
+            var en = c.Keys.GetEnumerator();
+            while (en.MoveNext())
+            {
+                TKey k = (TKey)en.Current;
+                TValue v = (TValue)c[k];
+                action(k, v);
+            }
+        }
+
         public static IDictionaryEnumerator GetEnumerator<TKey, TValue>(this LiteMap<TKey, TValue> c)
         {
             return c._raw.GetEnumerator();
@@ -299,6 +342,28 @@ namespace System.Collections.LiteCollections
             c._raw.Remove(key);
 
             return true;
+        }
+
+        public static void RemoveIf<TKey, TValue>(this LiteMap<TKey, TValue> c, Func<TKey, TValue, bool> condition)
+        {
+            LiteList<TKey> tobeRemoved = null;
+            var en = c.Keys.GetEnumerator();
+            while (en.MoveNext())
+            {
+                TKey k = (TKey)en.Current;
+                TValue v = (TValue)c[k];
+                if (condition(k, v))
+                {
+                    if (tobeRemoved == null)
+                        tobeRemoved = new LiteList<TKey>();
+                    tobeRemoved.Add(k);
+                }
+            }
+            if (tobeRemoved != null)
+            {
+                for (int i = 0; i < tobeRemoved.Count; i++)
+                    c.Remove(tobeRemoved[i]);
+            }
         }
 
         public static bool TryGetValue<TKey, TValue>(this LiteMap<TKey, TValue> c, TKey key, out TValue value)
@@ -358,6 +423,15 @@ namespace System.Collections.LiteCollections
             value = (TValue)c._raw[key];
 
             return true;
+        }
+
+        public static LiteList<T> ToLiteList<T>(this IEnumerable<T> source)
+        {
+            LiteList<T> result = new LiteList<T>();
+            foreach (var s in source)
+                result.Add(s);
+
+            return result;
         }
     }
 }
